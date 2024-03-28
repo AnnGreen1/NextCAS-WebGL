@@ -1,5 +1,6 @@
 <script setup>
-import NextCas from './components/NextCas.vue'
+// import NextCas from './components/NextCas.vue'
+import TransformHuman from './components/TransformHuman.vue'
 </script>
 
 <template>
@@ -11,7 +12,7 @@ import NextCas from './components/NextCas.vue'
       <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
     </a>
   </div> -->
-  <NextCas  />
+  <TransformHuman  />
 </template>
 
 <style scoped>

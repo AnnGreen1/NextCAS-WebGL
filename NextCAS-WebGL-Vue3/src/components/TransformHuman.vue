@@ -42,7 +42,7 @@ export default {
 
         const getToken = async () => {
             // Implement your getToken function here
-            return { data: 'next6602d484f39da553d0977600@eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoicm9sZS52aXNpdCIsInZpc2l0SWQiOiIxMjMiLCJ2aXNpdE5hbWUiOiIiLCJ0aW1lc3RhbXAiOjE3MTE1Mzc5NjE3OTAsImV4cCI6MTcxMTYyNDM2MSwiaWF0IjoxNzExNTM3OTYxfQ.JYEwfpWkQO61k6DhaAvR7nZCL6zospSPHKOG3pUqAbY' }
+            return { data: 'next66056c86bf46ee5d997de368@eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoicm9sZS52aXNpdCIsInZpc2l0SWQiOiIxMjMiLCJ2aXNpdE5hbWUiOiIiLCJ0aW1lc3RhbXAiOjE3MTE2MzU4NzkxMTUsImV4cCI6MTcxMTcyMjI3OSwiaWF0IjoxNzExNjM1ODc5fQ.q1fLhjtgcPo04j5ywPrBi-c1ELyQUJcP5cQHmybWTHQ' }
         };
 
         const ask = async () => {
@@ -54,6 +54,8 @@ export default {
 
             const index = chatHistory.value.length;
             function reply(data) {
+                console.log(data);
+                // 为了判断回答的是不是这个问题
                 if (data.id === askId) {
                     if (!chatHistory.value[index]) {
                         chatHistory.value.push({
@@ -71,6 +73,7 @@ export default {
                     }
                 }
             }
+            // 监听 replay 时间，reply 函数是一次回答调用多次，实现了“流式”效果，但是是不断拼接较长的字符串，效果还是不太好
             cas.on("reply", reply);
         };
 
@@ -80,8 +83,10 @@ export default {
                 source: "nexthuman",
                 content: inputValue,
             });
-            chatHistory.value = chatHistory.value;
-            cas?.speak(inputValue);
+            // console.log(inputValue);
+            console.log(inputValue.value);
+            // chatHistory.value = chatHistory.value;
+            cas?.speak(inputValue.value);
         };
 
         const stopAct = () => {
@@ -94,6 +99,7 @@ export default {
             stream.next("你好");
             setTimeout(() => {
                 stream.next("我是小唯");
+                // 非最后一句话使用 next() 方法，最后一句话需要使用 last方法
                 stream.last("很高兴见到你");
             }, 1000);
         };
@@ -126,12 +132,12 @@ export default {
         });
 
         return {
-            container,
-            progress,
-            inited,
-            inputValue,
-            chatHistory,
-            ask,
+            container, // 挂载节点
+            progress,  // 数字人初始化进度
+            inited, // 数字人初始化完成改变标志
+            inputValue, // 用户输入框的 v-model
+            chatHistory, // 对话历史
+            ask, // 主动对话方法
             speak,
             stopAct,
             speakStream
@@ -142,15 +148,20 @@ export default {
 
 <style>
 .container {
+    position: fixed;
+    left: 20px;
+    top:10px;
     width: 375px;
-    height: 800px;
+    height: 700px;
     border: 1px solid red;
-    flex-shrink: 0;
 }
 
 .apis {
+    position: fixed;
+    right: 0;
+    top:10px;
     padding: 20px;
-    max-width: 500px;
+    width: 500px;
 }
 
 .api-box {

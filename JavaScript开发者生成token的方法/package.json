@@ -1,0 +1,14 @@
+{
+  "name": "init-token",
+  "version": "1.0.0",
+  "description": "官方给出的生成token方法\r ```java\r public String createAccessToken(String uid,String accessKey,String accessSecret){\r       SecretKey secretKey = Keys.hmacShaKeyFor(accessSecret.getBytes(StandardCharsets.UTF_8));\r       JwtBuilder builder = Jwts.builder();\r       builder.claim(\"role\",\"role.visit\");\r       builder.claim(\"visitId\",StringUtil.trimToEmpty(visitId));//业务方userId(不同用户切记不可重复,否则会话记忆可能穿插)\r       builder.claim(\"visitName\",StringUtil.trimToEmpty(visitName));\r       builder.claim(\"timestamp\",System.currentTimeMillis());//务必传系统当前时间，会用于系统时间钟校验\r       builder.setExpiration(new Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000));//建议设置为24小时以内的有效期\r       return accessKey + \"@\" + builder.signWith(secretKey).compact();\r }\r ```\r 让GPT使用JS重写这个方法（需要安装 jsonwebtoken 依赖）（uid 似乎没有用到，不过这段代码生成的 token 是可以使项目运行的）\r ```js\r const jwt = require('jsonwebtoken');",
+  "main": "token.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "jsonwebtoken": "^9.0.2"
+  }
+}
