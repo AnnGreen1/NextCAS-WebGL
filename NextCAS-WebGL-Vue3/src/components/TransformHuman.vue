@@ -16,6 +16,7 @@
                 <button @click="speak">speak</button>
                 <button @click="stopAct">打断演讲</button>
                 <button @click="speakStream">流式演讲</button>
+                <!-- <button @click="playDrama">播放剧本</button> -->
             </div>
 
             <div class="chat-history" v-if="inited">
@@ -42,7 +43,7 @@ export default {
 
         const getToken = async () => {
             // Implement your getToken function here
-            return { data: 'next66056c86bf46ee5d997de368@eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoicm9sZS52aXNpdCIsInZpc2l0SWQiOiIxMjMiLCJ2aXNpdE5hbWUiOiIiLCJ0aW1lc3RhbXAiOjE3MTE2MzU4NzkxMTUsImV4cCI6MTcxMTcyMjI3OSwiaWF0IjoxNzExNjM1ODc5fQ.q1fLhjtgcPo04j5ywPrBi-c1ELyQUJcP5cQHmybWTHQ' }
+            return { data: 'next6602d484f39da553d0977600@eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoicm9sZS52aXNpdCIsInZpc2l0SWQiOiIxMjMiLCJ2aXNpdE5hbWUiOiIiLCJ0aW1lc3RhbXAiOjE3MTE5ODE2Njg4NDIsImV4cCI6MTcxMjA2ODA2OCwiaWF0IjoxNzExOTgxNjY4fQ.L2Bru5uEJVz8QhiBpx58UueyivMdbtpCcY6WAOuCnmM' }
         };
 
         const ask = async () => {
@@ -104,14 +105,49 @@ export default {
             }, 1000);
         };
 
+        // const playDrama = () => {
+        //     let data = {
+        //         accessToken: 'next66056c86bf46ee5d997de368@eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoicm9sZS52aXNpdCIsInZpc2l0SWQiOiIxMjMiLCJ2aXNpdE5hbWUiOiIiLCJ0aW1lc3RhbXAiOjE3MTE5Nzg4NzIwOTMsImV4cCI6MTcxMjA2NTI3MiwiaWF0IjoxNzExOTc4ODcyfQ.g3wsXVT23PnWcRzg_TLAwSAKMwyBBAPkHpjVn6RNnLAs',
+        //         text: '每天起来我们都应该微笑面对生活[e:customer_service]，也要时常自我加油[m:introduce]，' +
+        //             '如果身体疲惫的时候，我们可以做体操舒缓一下身体,' +
+        //             '[a:https://cdn.wehome.cn/cmn/mp3/META-1OB66K71-YZGGZ6U3C0QUWDEIT3JN2-E1U315QL-BX1.mp3][m:skeani_341]，' +
+        //             '这样就可以时刻为自己的身体注射新的能量啦,[e:happy]比心～～',
+        //         actorId: "641811add41a3f2f91247af5",
+        //         faceModel: "richu",
+        //         faceQuality: "middle"
+        //     }
+        //     fetch('https://nexthuman.cn/open/srv/drama/create3D', {
+        //         headers: {
+        //             'Content-Type': 'application/json'
+        //         },
+        //         method: 'post',
+        //         body: JSON.stringify(data)
+        //     })
+        //         .then(function (response) {
+        //             console.log(response.json);
+        //         })
+        //         .then(function (response) {
+        //             console.log(response);
+        //         });
+        //     // cas.playDrama(dramaId);
+        // }
+
         onMounted(async () => {
             const { data: token } = await getToken();
+
             cas = new NextCas(container.value, {
                 avatarId: "avatar_257",
                 actorId: "641811add41a3f2f91247af5",
                 token: token,
                 templateName: "introduce"
             });
+
+
+            // cas.on("refresh_token", () => {
+            //     const { data: token } = getToken();
+            //     cas.updateToken(token)
+            // });
+
 
             cas.on("initProgress", (cent) => {
                 progress.value = cent;
@@ -140,7 +176,8 @@ export default {
             ask, // 主动对话方法
             speak,
             stopAct,
-            speakStream
+            speakStream,
+            // playDrama
         };
     }
 };
@@ -150,7 +187,7 @@ export default {
 .container {
     position: fixed;
     left: 20px;
-    top:10px;
+    top: 10px;
     width: 375px;
     height: 700px;
     border: 1px solid red;
@@ -159,7 +196,7 @@ export default {
 .apis {
     position: fixed;
     right: 0;
-    top:10px;
+    top: 10px;
     padding: 20px;
     width: 500px;
 }

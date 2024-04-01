@@ -18,7 +18,7 @@ function createAccessToken(uid, accessKey, accessSecret) {
 
 // 调用函数并输出结果
 const uid = '123';
-const accessKey = 'next66056c86bf46ee5d997de368';
-const accessSecret = '2V_2AblKpNCw2wvQ-eJJRsEqWQjizULX28C09BTF4K';
+const accessKey = 'next6602d484f39da553d0977600';
+const accessSecret = 'c8fN4ZhYL8J3bnenAmVnyp5nw6-lM9d7UjJAskKxoW';
 const accessToken = createAccessToken(uid, accessKey, accessSecret);
 console.log(accessToken);
