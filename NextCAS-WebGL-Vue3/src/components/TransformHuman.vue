@@ -17,6 +17,7 @@
                 <button @click="stopAct">打断演讲</button>
                 <button @click="speakStream">流式演讲</button>
                 <!-- <button @click="playDrama">播放剧本</button> -->
+                <button @click="addBundle">装扮切换</button>
             </div>
 
             <div class="chat-history" v-if="inited">
@@ -43,9 +44,10 @@ export default {
 
         const getToken = async () => {
             // Implement your getToken function here
-            return { data: 'next6602d484f39da553d0977600@eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoicm9sZS52aXNpdCIsInZpc2l0SWQiOiIxMjMiLCJ2aXNpdE5hbWUiOiIiLCJ0aW1lc3RhbXAiOjE3MTE5ODE2Njg4NDIsImV4cCI6MTcxMjA2ODA2OCwiaWF0IjoxNzExOTgxNjY4fQ.L2Bru5uEJVz8QhiBpx58UueyivMdbtpCcY6WAOuCnmM' }
-        };
-
+            return {
+                data: 'next6602d484f39da553d0977600@eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoicm9sZS52aXNpdCIsInZpc2l0SWQiOiIxMjMiLCJ2aXNpdE5hbWUiOiIiLCJ0aW1lc3RhbXAiOjE3MTI0NjI4OTIxOTQsImV4cCI6MTcxMjU0OTI5MiwiaWF0IjoxNzEyNDYyODkyfQ.57IsLopaua-eQO3uUSdJ6SBTqAO4WfjyhZPl6ULq1rs'
+            }
+        }
         const ask = async () => {
             chatHistory.value.push({
                 source: "guest",
@@ -132,6 +134,10 @@ export default {
         //     // cas.playDrama(dramaId);
         // }
 
+        const addBundle = () => {
+            cas?.addBundle("hair_1001");
+        }
+
         onMounted(async () => {
             const { data: token } = await getToken();
 
@@ -177,7 +183,8 @@ export default {
             speak,
             stopAct,
             speakStream,
-            // playDrama
+            // playDrama,
+            addBundle
         };
     }
 };
