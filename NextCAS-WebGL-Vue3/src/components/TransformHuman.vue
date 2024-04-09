@@ -1,239 +1,308 @@
 <template>
     <div>
-        <div class="container" ref="container"></div>
-
-        <div class="apis">
-            <div class="api-box">
-                <div class="api-title">初始化状态：</div>
-                <span v-if="inited">初始化完成</span>
-                <span v-else>正在加载 {{ progress }}%</span>
-            </div>
-
-            <div class="api-box">
-                <div class="api-title">AI对话：</div>
-                <textarea v-model="inputValue"></textarea>
-                <button @click="ask">ask</button>
-                <button @click="speak">speak</button>
-                <button @click="stopAct">打断演讲</button>
-                <button @click="speakStream">流式演讲</button>
-                <!-- <button @click="playDrama">播放剧本</button> -->
-                <button @click="addBundle">装扮切换</button>
-            </div>
-
-            <div class="chat-history" v-if="inited">
-                <div class="chat-item" v-for="(chat, index) in chatHistory" :key="index">
-                    <div class="chat-item-avatar">{{ chat.source }}：</div>
-                    <div class="chat-item-content">{{ chat.content }}</div>
-                </div>
-            </div>
+      <div class="container" ref="container"></div>
+  
+      <div class="apis">
+        <div class="api-box">
+          <div class="api-title">初始化状态：</div>
+          <span v-if="inited">初始化完成</span>
+          <span v-else>正在加载 {{ progress }}%</span>
         </div>
+  
+        <div class="api-box">
+          <div class="api-title">AI对话：</div>
+          <textarea
+            style="width: 200px; height: 300px"
+            v-model="inputValue"
+          ></textarea>
+          <button @click="ask">ask</button>
+          <button @click="speak">speak</button>
+          <button @click="stopAct">打断演讲</button>
+          <button @click="speakStream">流式演讲</button>
+          <button @click="getBundles">获取当前装扮</button>
+          <button @click="changeBundles">切换装扮</button>
+          <button @click="skeaniAnimation('skeani')">获取一个身体动画</button>
+          <button @click="skeaniAnimation('faceani')">获取一个面部动画</button>
+          <button @click="skeaniAnimation('lipani')">获取一个唇形动画</button>
+          <button @click="skeaniAnimation('drama')">
+            获取一个3D剧本、剧本动画动画
+          </button>
+          <button @click="changeBg">改变背景为css颜色值</button>
+          <button @click="changeBgHdr">改变背景为hdr</button>
+          <button @click="freshToken">手动刷新token</button>
+        </div>
+  
+        <div class="chat-history" v-if="inited">
+          <div
+            class="chat-item"
+            v-for="(chat, index) in chatHistory"
+            :key="index"
+          >
+            <div class="chat-item-avatar">{{ chat.source }}：</div>
+            <div class="chat-item-content">{{ chat.content }}</div>
+          </div>
+        </div>
+      </div>
     </div>
-</template>
-
-<script>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
-import NextCas from "@nextcas/sdk";
-export default {
+  </template>
+  
+  <script>
+  import { ref, onMounted, onBeforeUnmount } from "vue";
+  import NextCas from "@nextcas/sdk";
+  
+  import { getBundlesList, getToken } from "../api/api";
+  export default {
     setup() {
-        const container = ref(null);
-        let cas = null;
-        const progress = ref(0);
-        const inited = ref(false);
-        const inputValue = ref("");
-        const chatHistory = ref([]);
-
-        const getToken = async () => {
-            // Implement your getToken function here
-            return {
-                data: 'next6602d484f39da553d0977600@eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoicm9sZS52aXNpdCIsInZpc2l0SWQiOiIxMjMiLCJ2aXNpdE5hbWUiOiIiLCJ0aW1lc3RhbXAiOjE3MTI0NjI4OTIxOTQsImV4cCI6MTcxMjU0OTI5MiwiaWF0IjoxNzEyNDYyODkyfQ.57IsLopaua-eQO3uUSdJ6SBTqAO4WfjyhZPl6ULq1rs'
-            }
-        }
-        const ask = async () => {
-            chatHistory.value.push({
-                source: "guest",
-                content: inputValue,
-            });
-            const askId = await cas.ask(inputValue);
-
-            const index = chatHistory.value.length;
-            function reply(data) {
-                console.log(data);
-                // 为了判断回答的是不是这个问题
-                if (data.id === askId) {
-                    if (!chatHistory.value[index]) {
-                        chatHistory.value.push({
-                            source: "nexthuman",
-                            content: data.data.content,
-                        });
-                    } else {
-                        chatHistory.value[index].content += data.data.content;
-                    }
-                    chatHistory.value = chatHistory.value;
-
-                    if (data.data.last) {
-                        // 结束了
-                        cas.off("reply", reply);
-                    }
-                }
-            }
-            // 监听 replay 时间，reply 函数是一次回答调用多次，实现了“流式”效果，但是是不断拼接较长的字符串，效果还是不太好
-            cas.on("reply", reply);
-        };
-
-        const speak = () => {
-            // Implement your speak function here
-            chatHistory.value.push({
+      const container = ref(null);
+      let cas = null;
+      const progress = ref(0);
+      const inited = ref(false);
+      const inputValue = ref("");
+      const chatHistory = ref([]);
+  
+      // const getToken = async () => {
+      //   return {
+      //     data: "next6602d484f39da553d0977600@eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoicm9sZS52aXNpdCIsInZpc2l0SWQiOiIxMjMiLCJ2aXNpdE5hbWUiOiIiLCJ0aW1lc3RhbXAiOjE3MTI1NDM0MzU0OTAsImV4cCI6MTcxMjYyOTgzNSwiaWF0IjoxNzEyNTQzNDM1fQ.rAjGQxupxNfZxP764jM9eaOELuzvVgLMrK1klSCES5U",
+      //   };
+      // };
+  
+      const ask = async () => {
+        chatHistory.value.push({
+          source: "guest",
+          content: inputValue.value,
+        });
+        const askId = await cas.ask(inputValue.value);
+  
+        const index = chatHistory.value.length;
+        function reply(data) {
+          // 为了判断回答的是不是这个问题
+          if (data.id === askId) {
+            if (!chatHistory.value[index]) {
+              chatHistory.value.push({
                 source: "nexthuman",
-                content: inputValue,
-            });
-            // console.log(inputValue);
-            console.log(inputValue.value);
-            // chatHistory.value = chatHistory.value;
-            cas?.speak(inputValue.value);
-        };
-
-        const stopAct = () => {
-            cas?.call("stopAct");
-            // console.log(cas)
-        };
-
-        const speakStream = () => {
-            const stream = cas?.createSpeackStream();
-            stream.next("你好");
-            setTimeout(() => {
-                stream.next("我是小唯");
-                // 非最后一句话使用 next() 方法，最后一句话需要使用 last方法
-                stream.last("很高兴见到你");
-            }, 1000);
-        };
-
-        // const playDrama = () => {
-        //     let data = {
-        //         accessToken: 'next66056c86bf46ee5d997de368@eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoicm9sZS52aXNpdCIsInZpc2l0SWQiOiIxMjMiLCJ2aXNpdE5hbWUiOiIiLCJ0aW1lc3RhbXAiOjE3MTE5Nzg4NzIwOTMsImV4cCI6MTcxMjA2NTI3MiwiaWF0IjoxNzExOTc4ODcyfQ.g3wsXVT23PnWcRzg_TLAwSAKMwyBBAPkHpjVn6RNnLAs',
-        //         text: '每天起来我们都应该微笑面对生活[e:customer_service]，也要时常自我加油[m:introduce]，' +
-        //             '如果身体疲惫的时候，我们可以做体操舒缓一下身体,' +
-        //             '[a:https://cdn.wehome.cn/cmn/mp3/META-1OB66K71-YZGGZ6U3C0QUWDEIT3JN2-E1U315QL-BX1.mp3][m:skeani_341]，' +
-        //             '这样就可以时刻为自己的身体注射新的能量啦,[e:happy]比心～～',
-        //         actorId: "641811add41a3f2f91247af5",
-        //         faceModel: "richu",
-        //         faceQuality: "middle"
-        //     }
-        //     fetch('https://nexthuman.cn/open/srv/drama/create3D', {
-        //         headers: {
-        //             'Content-Type': 'application/json'
-        //         },
-        //         method: 'post',
-        //         body: JSON.stringify(data)
-        //     })
-        //         .then(function (response) {
-        //             console.log(response.json);
-        //         })
-        //         .then(function (response) {
-        //             console.log(response);
-        //         });
-        //     // cas.playDrama(dramaId);
-        // }
-
-        const addBundle = () => {
-            cas?.addBundle("hair_1001");
-        }
-
-        onMounted(async () => {
-            const { data: token } = await getToken();
-
-            cas = new NextCas(container.value, {
-                avatarId: "avatar_257",
-                actorId: "641811add41a3f2f91247af5",
-                token: token,
-                templateName: "introduce"
-            });
-
-
-            // cas.on("refresh_token", () => {
-            //     const { data: token } = getToken();
-            //     cas.updateToken(token)
-            // });
-
-
-            cas.on("initProgress", (cent) => {
-                progress.value = cent;
-            });
-
-            cas.on("ready", () => {
-                inited.value = true;
-                setTimeout(() => {
-                    cas.speak("你好，请问有什么可以帮您");
-                });
-            });
-        });
-
-        onBeforeUnmount(() => {
-            if (cas) {
-                cas.destroy();
+                content: data.data.content,
+              });
+            } else {
+              chatHistory.value[index].content += data.data.content;
             }
+            chatHistory.value = chatHistory.value;
+  
+            if (data.data.last) {
+              // 结束了
+              cas.off("reply", reply);
+            }
+          }
+        }
+        // 监听 replay 事件，reply 函数是一次回答调用多次，实现了“流式”效果，但是是不断拼接较长的字符串，效果还是不太好
+        cas.on("reply", reply);
+      };
+  
+      const speak = () => {
+        chatHistory.value.push({
+          source: "nexthuman",
+          content: inputValue.value,
         });
-
-        return {
-            container, // 挂载节点
-            progress,  // 数字人初始化进度
-            inited, // 数字人初始化完成改变标志
-            inputValue, // 用户输入框的 v-model
-            chatHistory, // 对话历史
-            ask, // 主动对话方法
-            speak,
-            stopAct,
-            speakStream,
-            // playDrama,
-            addBundle
+        cas?.speak(inputValue.value);
+      };
+  
+      const stopAct = () => {
+        cas?.call("stopAct");
+      };
+  
+      const speakStream = () => {
+        const stream = cas?.createSpeackStream();
+        stream.next("你好");
+        setTimeout(() => {
+          stream.next("我是小唯");
+          // 非最后一句话使用 next() 方法，最后一句话需要使用 last方法
+          stream.last("很高兴见到你");
+        }, 1000);
+      };
+  
+      const getBundles = async () => {
+        const currentBundles = await cas.getBundles();
+        console.log(currentBundles);
+      };
+      const changeBundles = async () => {
+        let data = {
+          category: "hair",
+          bodyId: "nh_webreal_female_01", //WebGL次写实(女)
+          scope: "free",
+          cvs: ["webgl_threejs@1.0"],
+          page: 1,
+          pageSize: 8,
         };
-    }
-};
-</script>
-
-<style>
-.container {
+        getBundlesList(data).then((res) => {
+          cas.addBundle(res.data.content[4].id);
+        });
+      };
+  
+      const skeaniAnimation = async (category) => {
+        let data = {
+          category: category,
+          bodyId: "nh_webreal_female_01", //WebGL次写实(女)
+          scope: "free",
+          cvs: ["webgl_threejs@1.0"],
+          page: 1,
+          pageSize: 8,
+        };
+        getBundlesList(data).then((res) => {
+          cas.addBundle(res.data.content[0].id);
+        });
+      };
+  
+      const changeBg = async () => {
+        cas.setBackground("red");
+      };
+  
+      const changeBgHdr = async () => {
+        cas.addHdrScene(
+          "https://nexthuman.cn/webapp/hdr/hdr_env02/hdr_env02.hdr"
+        );
+      };
+  
+      // const playDrama = () => {
+      //     let data = {
+      //         accessToken: 'next66056c86bf46ee5d997de368@eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoicm9sZS52aXNpdCIsInZpc2l0SWQiOiIxMjMiLCJ2aXNpdE5hbWUiOiIiLCJ0aW1lc3RhbXAiOjE3MTE5Nzg4NzIwOTMsImV4cCI6MTcxMjA2NTI3MiwiaWF0IjoxNzExOTc4ODcyfQ.g3wsXVT23PnWcRzg_TLAwSAKMwyBBAPkHpjVn6RNnLAs',
+      //         text: '每天起来我们都应该微笑面对生活[e:customer_service]，也要时常自我加油[m:introduce]，' +
+      //             '如果身体疲惫的时候，我们可以做体操舒缓一下身体,' +
+      //             '[a:https://cdn.wehome.cn/cmn/mp3/META-1OB66K71-YZGGZ6U3C0QUWDEIT3JN2-E1U315QL-BX1.mp3][m:skeani_341]，' +
+      //             '这样就可以时刻为自己的身体注射新的能量啦,[e:happy]比心～～',
+      //         actorId: "641811add41a3f2f91247af5",
+      //         faceModel: "richu",
+      //         faceQuality: "middle"
+      //     }
+      //     fetch('https://nexthuman.cn/open/srv/drama/create3D', {
+      //         headers: {
+      //             'Content-Type': 'application/json'
+      //         },
+      //         method: 'post',
+      //         body: JSON.stringify(data)
+      //     })
+      //         .then(function (response) {
+      //             console.log(response.json);
+      //         })
+      //         .then(function (response) {
+      //             console.log(response);
+      //         });
+      //     // cas.playDrama(dramaId);
+      // }
+  
+      const freshToken = () => {
+        console.log("refresh");
+        cas?.refresh_token();
+      };
+      onMounted(async () => {
+        // const { data: token } = await getToken();
+  
+        cas = new NextCas(container.value, {
+          avatarId: "avatar_257",
+          actorId: "641811add41a3f2f91247af5",
+          token:
+            "next6602d484f39da553d0977600@eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoicm9sZS52aXNpdCIsInZpc2l0SWQiOiIxMjMiLCJ2aXNpdE5hbWUiOiIiLCJ0aW1lc3RhbXAiOjE3MTI1NTUxNTY0NjQsImV4cCI6MTcxMjU1NTIxNiwiaWF0IjoxNzEyNTU1MTU2fQ.rd-q7DAhev1B5wMWwvsNOs9tHBOxVH1cOzF_HLX911E",
+          // templateName: "introduce", // 有文本框，人，语音，切换，对话记录等
+          templateName: "base", // 只有一个人
+        });
+  
+        cas.on("initProgress", (cent) => {
+          progress.value = cent;
+        });
+        console.log(new Date());
+        setInterval(() => {
+          console.log(new Date());
+        }, 1000);
+  
+        cas.on("ready", () => {
+          inited.value = true;
+          setTimeout(() => {
+            cas.speak("你好，请问有什么可以帮您");
+          });
+        });
+  
+        cas.on("refresh_token", () => {
+          console.log("需要重新生成token了");
+          getToken().then((res) => {
+            console.log(res);
+            cas.updateToken(res.token);
+          });
+          // const { data: token } = getToken();
+          // cas.updateToken(token);
+        });
+      });
+  
+      onBeforeUnmount(() => {
+        if (cas) {
+          cas.destroy();
+        }
+      });
+  
+      return {
+        container, // 挂载节点
+        progress, // 数字人初始化进度
+        inited, // 数字人初始化完成改变标志
+        inputValue, // 用户输入框的 v-model
+        chatHistory, // 对话历史
+        ask, // 主动对话方法
+        speak,
+        stopAct,
+        speakStream,
+        // playDrama,
+        getBundles,
+        changeBundles,
+        skeaniAnimation,
+        changeBg,
+        changeBgHdr,
+        freshToken,
+      };
+    },
+  };
+  </script>
+  
+  <style>
+  .container {
     position: fixed;
     left: 20px;
     top: 10px;
     width: 375px;
     height: 700px;
     border: 1px solid red;
-}
-
-.apis {
+  }
+  
+  .apis {
     position: fixed;
     right: 0;
     top: 10px;
     padding: 20px;
-    width: 500px;
-}
-
-.api-box {
+    width: 1000px;
+  }
+  
+  .api-box {
     display: flex;
     margin-top: 6px;
-}
-
-.api-title {
+  }
+  
+  .api-title {
     font-size: 18px;
     font-weight: bold;
-}
-
-.chat-history {
+  }
+  
+  .chat-history {
     margin-top: 24px;
     max-height: 400px;
     overflow-y: overlay;
-}
-
-.chat-item {
+  }
+  
+  .chat-item {
     display: flex;
-}
-
-.chat-item-avatar {
+  }
+  
+  .chat-item-avatar {
     font-weight: bold;
     font-size: 18px;
-}
-
-button {
+  }
+  
+  button {
     margin: 0 12px;
-}
-</style>
+  }
+  </style>
+  
