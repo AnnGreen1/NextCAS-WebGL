@@ -11,6 +11,8 @@
   "dependencies": {
     "@nextcas/sdk": "^1.2.0",
     "@rollup/rollup-win32-x64-msvc": "^4.13.0",
+    "axios": "^1.6.8",
+    "crypto-js": "^4.2.0",
     "vue": "^3.4.21"
   },
   "devDependencies": {
